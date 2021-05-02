@@ -7,8 +7,8 @@ import fr.uga.pddl4j.planners.ProblemFactory;
 
 public class Main {
 
-	public static final String domain = "";
-	public static final String problem = "";
+	public static final String domain = "pddl/gripper/domain.pddl";
+	public static final String problem = "pddl/gripper/p01.pddl";
 
 	public static void main(String[] args) {
 		final ProblemFactory factory = ProblemFactory.getInstance();
@@ -28,6 +28,7 @@ public class Main {
 		}
 		
 		final CodedProblem pb = factory.encode();
+		pb.isSolvable();
 		
 	}
 

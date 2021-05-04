@@ -5,14 +5,17 @@ import java.io.IOException;
 import fr.uga.pddl4j.encoding.CodedProblem;
 import fr.uga.pddl4j.parser.ErrorManager;
 import fr.uga.pddl4j.planners.ProblemFactory;
+import fr.uga.pddl4j.planners.statespace.AbstractStateSpacePlanner;
+import fr.uga.pddl4j.planners.statespace.hsp.HSP;
+import fr.uga.pddl4j.util.IntExp;
 import fr.uga.pddl4j.util.Plan;
 import satplan.SAT;
 
 public class Main {
 
 	//Test
-	public static final String domain = "pddl/gripper/domain.pddl";
-	public static final String problem = "pddl/gripper/p01.pddl";
+	public static final String domain = "pddl/simple3/domain.pddl";
+	public static final String problem = "pddl/simple3/p01.pddl";
 
 	public static void main(String[] args) {
 		final ProblemFactory factory = ProblemFactory.getInstance();
@@ -41,7 +44,8 @@ public class Main {
 			System.exit(0);
 		}
 		
-		final SAT planner = new SAT();
+		final AbstractStateSpacePlanner planner = new SAT();
+//		final AbstractStateSpacePlanner planner = new HSP();
 
 		final Plan plan = planner.search(pb);
 		if (plan != null) {
@@ -51,6 +55,14 @@ public class Main {
 		    System.out.println("No plan found.");
 		}
 
+	}
+	
+	private static void showIntExp(IntExp exp) {
+		System.out.println( "Predicate: " + exp.getPredicate() );
+		System.out.println( "Type: " + exp.getType() );
+		System.out.println( "Value: " + exp.getValue() );
+		System.out.println( "Variable: " + exp.getVariable() );
+		System.out.println();
 	}
 
 }

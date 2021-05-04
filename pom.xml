@@ -8,13 +8,19 @@
 	<name>SAT-Planner</name>
 
 	<properties>
-		<maven.compiler.source>1.6</maven.compiler.source>
-		<maven.compiler.target>1.6</maven.compiler.target>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
 
 	<build>
 		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<configuration>
+					<source>8</source>
+					<target>8</target>
+				</configuration>
+			</plugin> 
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-assembly-plugin</artifactId>
@@ -77,7 +83,7 @@
 			<version>4.11</version>
 		</dependency>
 
- 		<dependency>
+		<dependency>
 			<groupId>org.ow2.sat4j</groupId>
 			<artifactId>org.ow2.sat4j.core</artifactId>
 			<version>2.3.6</version>

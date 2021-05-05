@@ -1,7 +1,11 @@
 package satplan;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 import java.util.Objects;
+import java.util.TimeZone;
 
 import org.apache.logging.log4j.Logger;
 import org.sat4j.core.VecInt;
@@ -13,10 +17,10 @@ import org.sat4j.specs.TimeoutException;
 
 import fr.uga.pddl4j.encoding.CodedProblem;
 import fr.uga.pddl4j.heuristics.relaxation.Heuristic;
+import fr.uga.pddl4j.heuristics.relaxation.HeuristicToolKit;
 import fr.uga.pddl4j.planners.statespace.AbstractStateSpacePlanner;
+import fr.uga.pddl4j.util.BitState;
 import fr.uga.pddl4j.util.Plan;
-import fr.uga.pddl4j.util.SequentialPlan;
-import fr.utils.Utils;
 
 /**
  * Classe de planification utilisant SAT4J Certaines parties basique du code
@@ -67,12 +71,14 @@ public class SAT extends AbstractStateSpacePlanner {
 		final Logger logger = this.getLogger();
 		Objects.requireNonNull(problem);
 //		System.out.println(problem.toString(problem.getInit()));
+		final Heuristic heuristic = HeuristicToolKit.createHeuristic(Heuristic.Type.FAST_FORWARD, problem);
+		int MIN_STEP = heuristic.estimate(new BitState(problem.getInit()), problem.getGoal());
 		logger.trace("* starting SAT\n");
 
-		final int timeout = 2;
-		final int etapesMax = 10;
+		final int timeout = 200;
+		final int etapesMax = 100000;
 		final int MAXVAR = 1000;
-		int etapes = 1;
+		int etape = 1;
 
 		// initialisation des clauses avec SAT4J
 		ISolver satSolver = SolverFactory.newDefault();
@@ -80,32 +86,58 @@ public class SAT extends AbstractStateSpacePlanner {
 		List<int[]> clauses = null;
 		
 		// Vérification de la satisfaisabilité avec SAT4J
+		long timeSearch = 0;
+		long timeSearchStep = System.currentTimeMillis();
+		long timeEncode = 0;
+		long timeEncodeStep = System.currentTimeMillis();
 		EncoderToSAT4J encoder = new EncoderToSAT4J(problem);
 		clauses = encoder.init();
+		timeEncode += System.currentTimeMillis() - timeEncodeStep;
 		boolean isSatisfy = false;
 		try {
-			while (!isSatisfy && etapes < etapesMax) {
+			while (!isSatisfy && etape < etapesMax) {
 
+				timeEncodeStep = System.currentTimeMillis();
 				clauses = encoder.getNext();
-				Utils.printClauses3(clauses);
-				boolean encodedToSat4J = encodeToSAT4J(satSolver, MAXVAR, clauses, timeout);
-				if (encodedToSat4J) {
-					isSatisfy = isSatisfiable(satProblem) && DecoderFromSAT4J.isSatisfied(problem, satProblem);
+				timeEncode += System.currentTimeMillis() - timeEncodeStep;
+				System.out.println("Etape : " + etape + " clauses : " + clauses.size());
+//				Utils.printClauses4(clauses);
+				timeSearchStep = System.currentTimeMillis();
+				if(etape>MIN_STEP) {
+					boolean encodedToSat4J = encodeToSAT4J(satSolver, MAXVAR, clauses, timeout);
+					if (encodedToSat4J) {
+						isSatisfy = isSatisfiable(satProblem);
+					}
 				}
-				etapes++;
+				timeSearch += System.currentTimeMillis() - timeSearchStep;
+				etape++;
 			}
 		} catch (TimeoutException e) {
 			System.out.println("TimeOut !");
 		}
 		
-		System.out.println("étapes: " + etapes);
+		showTime("Total time : ", timeEncode+timeSearch);
+		super.getStatistics().setTimeToEncode(timeEncode);
+		showTime("Encoded in : ", timeEncode);
+		super.getStatistics().setTimeToSearch(timeSearch);
+		showTime("Searched in : ", timeSearch);
+		
 
-		if (etapes == etapesMax) { System.out.println("Nombre maximum d'étape dépassé"); return null; }
+		System.out.println("étapes: " + etape);
+		if (etape == etapesMax) { System.out.println("Nombre maximum d'étape dépassé"); return null; }
 
 		final Plan plan = DecoderFromSAT4J.decodePlanFromSatResult(problem, satProblem);
 		
 		logger.trace("* SAT succeeded\n");
 		return plan;
+	}
+
+	private void showTime(String prefix, long time) {
+		Date date = new Date(time);
+		DateFormat formatter = new SimpleDateFormat("mm:ss.SSS ");
+		formatter.setTimeZone(TimeZone.getTimeZone("UTC"));
+		System.out.println( prefix + formatter.format(date) );
+		
 	}
 
 	/**
@@ -123,8 +155,8 @@ public class SAT extends AbstractStateSpacePlanner {
 		// prepare the solver to accept MAXVAR variables. MANDATORY for MAXSAT solving
 		satSolver.reset();
 		satSolver.setTimeout(timeout);
-		satSolver.newVar(MAXVAR);
-		satSolver.setExpectedNumberOfClauses(NBCLAUSES);
+		satSolver.newVar(1000000);
+		satSolver.setExpectedNumberOfClauses(clauses.size());
 
 		// Feed the solver using Dimacs format, using arrays of int
 		// (best option to avoid dependencies on SAT4J IVecInt)
@@ -138,7 +170,7 @@ public class SAT extends AbstractStateSpacePlanner {
 			try {
 				satSolver.addClause(vecint);
 			} catch (ContradictionException e) {
-				System.out.println("Unsatisfiable (trivial)!");
+//				System.out.println("Unsatisfiable (trivial)!");
 				return false;
 			}
 		}
@@ -156,7 +188,7 @@ public class SAT extends AbstractStateSpacePlanner {
 			System.out.println("Satisfiable");
 			return true;
 		} else {
-			System.out.println("Unsatisfiable");
+//			System.out.println("Unsatisfiable");
 		}
 		return false;
 	}

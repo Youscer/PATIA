@@ -7,17 +7,22 @@ import fr.uga.pddl4j.parser.ErrorManager;
 import fr.uga.pddl4j.planners.ProblemFactory;
 import fr.uga.pddl4j.planners.statespace.AbstractStateSpacePlanner;
 import fr.uga.pddl4j.planners.statespace.hsp.HSP;
-import fr.uga.pddl4j.util.IntExp;
 import fr.uga.pddl4j.util.Plan;
 import satplan.SAT;
 
 public class Main {
 
-	//Test
-	public static final String domain = "pddl/simple3/domain.pddl";
-	public static final String problem = "pddl/simple3/p01.pddl";
+	// Test
+	public static String domain = "pddl/simple/domain.pddl";
+	public static String problem = "pddl/simple/p01.pddl";
 
 	public static void main(String[] args) {
+
+		if(args.length == 2) {
+			domain = args[0];
+			problem = args[1];
+		}
+		
 		final ProblemFactory factory = ProblemFactory.getInstance();
 		ErrorManager errorManager = null;
 		try {
@@ -43,26 +48,27 @@ public class Main {
 			System.out.println("Goal can be simplified to FALSE. No search will solve it.");
 			System.exit(0);
 		}
-		
-		final AbstractStateSpacePlanner planner = new SAT();
-//		final AbstractStateSpacePlanner planner = new HSP();
+		{
+			final AbstractStateSpacePlanner planner = new SAT();
 
-		final Plan plan = planner.search(pb);
-		if (plan != null) {
-		    System.out.println("Found plan as follows:");
-		    System.out.println(pb.toString(plan));
-		} else {
-		    System.out.println("No plan found.");
+			final Plan plan = planner.search(pb);
+			if (plan != null) {
+				System.out.println("Found plan as follows:");
+				System.out.println(pb.toString(plan));
+			} else {
+				System.out.println("No plan found.");
+			}
 		}
-
-	}
-	
-	private static void showIntExp(IntExp exp) {
-		System.out.println( "Predicate: " + exp.getPredicate() );
-		System.out.println( "Type: " + exp.getType() );
-		System.out.println( "Value: " + exp.getValue() );
-		System.out.println( "Variable: " + exp.getVariable() );
-		System.out.println();
+		{
+			final AbstractStateSpacePlanner planner = new HSP();
+			final Plan plan = planner.search(pb);
+			if (plan != null) {
+				System.out.println("Found plan as follows:");
+				System.out.println(pb.toString(plan));
+			} else {
+				System.out.println("No plan found.");
+			}
+		}
 	}
 
 }

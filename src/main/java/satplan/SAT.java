@@ -70,38 +70,49 @@ public class SAT extends AbstractStateSpacePlanner {
 	public Plan search(CodedProblem problem) {
 		final Logger logger = this.getLogger();
 		Objects.requireNonNull(problem);
-//		System.out.println(problem.toString(problem.getInit()));
+		
+		// On récupere l'heuristique pour sauter les etapes du solveur non necessaire
 		final Heuristic heuristic = HeuristicToolKit.createHeuristic(Heuristic.Type.FAST_FORWARD, problem);
 		int MIN_STEP = heuristic.estimate(new BitState(problem.getInit()), problem.getGoal());
-		logger.trace("* starting SAT\n");
-
+		
 		final int timeout = 200;
 		final int etapesMax = 100000;
 		final int MAXVAR = 1000;
 		int etape = 1;
+		
+		logger.trace("* starting SAT\n");
 
-		// initialisation des clauses avec SAT4J
 		ISolver satSolver = SolverFactory.newDefault();
 		IProblem satProblem = satSolver;
 		List<int[]> clauses = null;
 		
-		// Vérification de la satisfaisabilité avec SAT4J
 		long timeSearch = 0;
-		long timeSearchStep = System.currentTimeMillis();
+		long timeSearchStep;
+		
 		long timeEncode = 0;
 		long timeEncodeStep = System.currentTimeMillis();
 		EncoderToSAT4J encoder = new EncoderToSAT4J(problem);
 		clauses = encoder.init();
 		timeEncode += System.currentTimeMillis() - timeEncodeStep;
+		
 		boolean isSatisfy = false;
+		
+		// On cherche une solution a l'etape t+1 tant que le solver en trouver pas a l'etape t
+		// On arrete si le timeout du solver est depasse a une etape t
+		// On arrete si on a depasse l'etape maximal autorise
+		// On arrete si on a trouve une solution au probleme
 		try {
 			while (!isSatisfy && etape < etapesMax) {
-
+				
+				// Recuperation de la prochaine etape
 				timeEncodeStep = System.currentTimeMillis();
 				clauses = encoder.getNext();
 				timeEncode += System.currentTimeMillis() - timeEncodeStep;
-				System.out.println("Etape : " + etape + " clauses : " + clauses.size());
+				
+//				System.out.println("Etape : " + etape + " clauses : " + clauses.size());
 //				Utils.printClauses4(clauses);
+				
+				// On essaye de trouver une solution aux clauses recuperer grace au solveur SAT4J
 				timeSearchStep = System.currentTimeMillis();
 				if(etape>MIN_STEP) {
 					boolean encodedToSat4J = encodeToSAT4J(satSolver, MAXVAR, clauses, timeout);
@@ -110,22 +121,26 @@ public class SAT extends AbstractStateSpacePlanner {
 					}
 				}
 				timeSearch += System.currentTimeMillis() - timeSearchStep;
+				
+				// On passe a la prochaine etape
 				etape++;
 			}
 		} catch (TimeoutException e) {
 			System.out.println("TimeOut !");
 		}
 		
+		// Recuperation des statistiques de timing
 		showTime("Total time : ", timeEncode+timeSearch);
 		super.getStatistics().setTimeToEncode(timeEncode);
 		showTime("Encoded in : ", timeEncode);
 		super.getStatistics().setTimeToSearch(timeSearch);
 		showTime("Searched in : ", timeSearch);
 		
-
+		// Echec si on a depasse les etapes autorise
 		System.out.println("étapes: " + etape);
-		if (etape == etapesMax) { System.out.println("Nombre maximum d'étape dépassé"); return null; }
+		if (etape >= etapesMax) { System.out.println("Nombre maximum d'étape dépassé"); return null; }
 
+		// On decode le plan trouve
 		final Plan plan = DecoderFromSAT4J.decodePlanFromSatResult(problem, satProblem);
 		
 		logger.trace("* SAT succeeded\n");
@@ -178,7 +193,7 @@ public class SAT extends AbstractStateSpacePlanner {
 	}
 
 	/**
-	 * Vérification de la satisfaisabilité du problème avec SAT4J
+	 * Verification de la satisfaisabilite du probleme avec SAT4J
 	 * 
 	 * @param satProblem
 	 * @return True si oui, False si non ou si Timeout

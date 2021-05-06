@@ -13,7 +13,7 @@ import fr.uga.pddl4j.planners.statespace.AbstractStateSpacePlanner;
 import fr.uga.pddl4j.planners.statespace.hsp.HSP;
 import fr.uga.pddl4j.util.Plan;
 import fr.utils.Utils;
-import satplan.SAT;
+import planner.sat.SAT;
 
 public class SatTest {
 	public static final String dSimple = "pddl/simple/domain.pddl";

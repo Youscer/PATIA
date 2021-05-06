@@ -103,16 +103,18 @@ Ils génèrent un fichier .csv par domaine dans le repertoire  *stats/*
 Le script de statistique global s'execute depuis le répertoire racine :
 
 ```
-bash allstats.sh
+bash allstats.sh (-s)
 ```
+Si -s est ajouté métrique de taille de solution, sinon métrique de temps
 #### Statistiques individuel
 Le script de statistique individuel s'execute depuis le répertoire racine :
 
 ```
-bash stats.sh [domaine]
+bash stats.sh [domaine] (-s)
 ```
 
 où *[domaine]* est le nom du répertoire contenu dans *pddl/* \
+Si -s est ajouté métrique de taille de solution, sinon métrique de temps
 par exemple :
 
 ```

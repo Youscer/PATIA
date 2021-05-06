@@ -10,17 +10,11 @@ import java.util.List;
 import java.util.Set;
 import java.util.TimeZone;
 
-import org.apache.logging.log4j.core.Logger;
-
 import fr.uga.pddl4j.encoding.CodedProblem;
 import fr.uga.pddl4j.heuristics.relaxation.Heuristic;
 import fr.uga.pddl4j.parser.ErrorManager;
-import fr.uga.pddl4j.planners.Planner;
 import fr.uga.pddl4j.planners.ProblemFactory;
 import fr.uga.pddl4j.planners.statespace.AbstractStateSpacePlanner;
-import fr.uga.pddl4j.planners.statespace.StateSpacePlanner;
-import fr.uga.pddl4j.planners.statespace.hsp.HSP;
-import fr.uga.pddl4j.planners.statespace.search.strategy.AStar;
 import fr.uga.pddl4j.util.Plan;
 import fr.utils.LogType;
 import fr.utils.Logs;
@@ -37,8 +31,8 @@ public class Main {
 	private static final String PLANNER = "-p";
 	private static final String LOG = "-l";
 	private static final String DEFINE = "-d";
+	private static final String sizeMetric = "-s";
 
-	
 	public static void main(String[] args) {
 		factory = ProblemFactory.getInstance();
 
@@ -57,6 +51,8 @@ public class Main {
 		Set<String> possibleSolvertypes = new HashSet<String>();
 		possibleSolvertypes.add("sat");
 		possibleSolvertypes.add("astar");
+
+		boolean timeMetric = true;
 
 		int timeout = 120;
 
@@ -120,8 +116,10 @@ public class Main {
 				} catch (NumberFormatException e) {
 					System.out.println("Timeout Must be an integer");
 				}
+			} else if (mainArg.equalsIgnoreCase(sizeMetric)) {
+				timeMetric = false;
 			} else {
-				System.out.println("Argument inconnu");
+				System.out.println("Argument inconnu : " + mainArg);
 				System.exit(0);
 			}
 		}
@@ -133,14 +131,17 @@ public class Main {
 		if (plan != null) {
 			Logs.log(LogType.PLAN, pb.toString(plan));
 
-			Date time = new Date(planner.getStatistics().getTimeToEncode() + planner.getStatistics().getTimeToSearch());
-			DateFormat formatter = new SimpleDateFormat("s.S ");
-			formatter.setTimeZone(TimeZone.getTimeZone("UTC"));
-
-			Logs.log(LogType.TIMINGS, formatter.format(time));
+			if (timeMetric) {
+				Date time = new Date(planner.getStatistics().getTimeToEncode() + planner.getStatistics().getTimeToSearch());
+				DateFormat formatter = new SimpleDateFormat("s.S ");
+				formatter.setTimeZone(TimeZone.getTimeZone("UTC"));
+				Logs.log(LogType.TIMINGS, formatter.format(time));
+			} else {
+				Logs.log(LogType.TIMINGS, "" + plan.size());
+			}
 		} else {
 			Logs.log(LogType.ERROR, "Le planner n'a pas pu résoudre");
-			Logs.log(LogType.TIMINGS, ""+-1);
+			Logs.log(LogType.TIMINGS, "" + 0);
 		}
 	}
 

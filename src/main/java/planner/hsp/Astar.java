@@ -19,6 +19,8 @@
 
 package planner.hsp;
 
+import java.util.Objects;
+
 import fr.uga.pddl4j.encoding.CodedProblem;
 import fr.uga.pddl4j.heuristics.relaxation.Heuristic;
 import fr.uga.pddl4j.planners.statespace.AbstractStateSpacePlanner;
@@ -28,10 +30,6 @@ import fr.uga.pddl4j.planners.statespace.search.strategy.StateSpaceStrategy;
 import fr.uga.pddl4j.util.SequentialPlan;
 import fr.utils.LogType;
 import fr.utils.Logs;
-
-import org.apache.logging.log4j.Logger;
-
-import java.util.Objects;
 
 /**
  * This class implements a simple forward planner based on A* algorithm.
@@ -97,7 +95,6 @@ public final class Astar extends AbstractStateSpacePlanner {
      */
     @Override
     public SequentialPlan search(final CodedProblem problem) {
-        final Logger logger = this.getLogger();
         Objects.requireNonNull(problem);
 
         Logs.log(LogType.INFO, "* starting A*\n");

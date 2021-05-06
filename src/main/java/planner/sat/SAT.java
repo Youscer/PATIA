@@ -1,13 +1,8 @@
 package planner.sat;
 
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.List;
 import java.util.Objects;
-import java.util.TimeZone;
 
-import org.apache.logging.log4j.Logger;
 import org.sat4j.core.VecInt;
 import org.sat4j.minisat.SolverFactory;
 import org.sat4j.specs.ContradictionException;
@@ -79,7 +74,6 @@ public class SAT extends AbstractStateSpacePlanner {
 	}
 
 	public Plan search(CodedProblem problem) {
-		final Logger logger = this.getLogger();
 		Objects.requireNonNull(problem);
 
 		// On récupere l'heuristique pour sauter les etapes du solveur non necessaire

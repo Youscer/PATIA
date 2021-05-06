@@ -1,6 +1,10 @@
 package fr.utils;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
+import java.util.TimeZone;
 
 public class Utils {
 
@@ -75,6 +79,14 @@ public class Utils {
 		}
 		toprint += "]";
 		System.out.println(toprint);
+	}
+	
+	public static void showTime(String prefix, long time) {
+		Date date = new Date(time);
+		DateFormat formatter = new SimpleDateFormat("mm:ss.SSS ");
+		formatter.setTimeZone(TimeZone.getTimeZone("UTC"));
+		Logs.log(LogType.INFO, prefix + formatter.format(date));
+		
 	}
 
 	public static String lToS(int lit) {

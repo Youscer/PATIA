@@ -80,7 +80,12 @@ deux options possible parmis :
 * -t [timeout]\
 Met en place un timeout\
 Une résolution à une étape i sera limité par le timeout\
-La résolution global du problème sera limité par timeout * 2\
+La résolution global du problème sera limité par timeout * 2
+
+#### Metric
+* -s\
+Si ajouté, indique que le métric du log timings sera la taille de la solution\
+Sinon par défaut c'est le temps total (encodage+recherche)
 
 ### Exemple de lancement
 ```
